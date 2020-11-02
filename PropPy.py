@@ -339,13 +339,13 @@ class Rotor(Propeller):
 		----------
 		mu      --> Climb velocity V / (Omega X R)
 		lambdai --> Rotor's axial induction (see above)
-		xx		--> Stations along the rotor's radius
+		xx      --> Stations along the rotor's radius
 
 		Returns
 		-------
 		fi_i [deg] calculated via the equation
 
-	    (mu/xx) + (lambda_i/xx)
+	        (mu/xx) + (lambda_i/xx)
 
 		"""
 		return (self.mu)/self.xx + (self.lambdai)/self.xx
