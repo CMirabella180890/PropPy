@@ -1,15 +1,4 @@
 # -*- coding: utf-8 -*-
-#
-#       |M|MMMMMMMMn.\	 |M|MMMMMMMMn.\
-#		|M|	      |MMn|  |M|	   |MMn|
-#		|M|_______|MMn|  |M|_______|MMn|
-#		|M|MMMMMMMMn./   |M|MMMMMMMMn./
-#		|M|				 |M|\M\
-#		|M|				 |M| \M\
-#		|M|				 |M|  \M\
-#		|M| 			 |M|   \M\
-#		|M|				 |M|    \M\
-#
 # ====================================================================== 
 # An experimental Modules for propeller analysis 
 # ====================================================================== 
