@@ -1,4 +1,30 @@
 # -*- coding: utf-8 -*-
+#                                                                                                                          
+#                                                                                                                          
+# PPPPPPPPPPPPPPPPP                                                            PPPPPPPPPPPPPPPPP                            
+# P::::::::::::::::P                                                           P::::::::::::::::P                           
+# P::::::PPPPPP:::::P                                                          P::::::PPPPPP:::::P                          
+# PP:::::P     P:::::P                                                         PP:::::P     P:::::P                         
+#   P::::P     P:::::Prrrrr   rrrrrrrrr      ooooooooooo   ppppp   ppppppppp     P::::P     P:::::Pyyyyyyy           yyyyyyy
+#   P::::P     P:::::Pr::::rrr:::::::::r   oo:::::::::::oo p::::ppp:::::::::p    P::::P     P:::::P y:::::y         y:::::y 
+#   P::::PPPPPP:::::P r:::::::::::::::::r o:::::::::::::::op:::::::::::::::::p   P::::PPPPPP:::::P   y:::::y       y:::::y  
+#   P:::::::::::::PP  rr::::::rrrrr::::::ro:::::ooooo:::::opp::::::ppppp::::::p  P:::::::::::::PP     y:::::y     y:::::y   
+#   P::::PPPPPPPPP     r:::::r     r:::::ro::::o     o::::o p:::::p     p:::::p  P::::PPPPPPPPP        y:::::y   y:::::y    
+#   P::::P             r:::::r     rrrrrrro::::o     o::::o p:::::p     p:::::p  P::::P                 y:::::y y:::::y     
+#   P::::P             r:::::r            o::::o     o::::o p:::::p     p:::::p  P::::P                  y:::::y:::::y      
+#   P::::P             r:::::r            o::::o     o::::o p:::::p    p::::::p  P::::P                   y:::::::::y       
+# PP::::::PP           r:::::r            o:::::ooooo:::::o p:::::ppppp:::::::pPP::::::PP                  y:::::::y        
+# P::::::::P           r:::::r            o:::::::::::::::o p::::::::::::::::p P::::::::P                   y:::::y         
+# P::::::::P           r:::::r             oo:::::::::::oo  p::::::::::::::pp  P::::::::P                  y:::::y          
+# PPPPPPPPPP           rrrrrrr               ooooooooooo    p::::::pppppppp    PPPPPPPPPP                 y:::::y           
+#                                                           p:::::p                                      y:::::y            
+#                                                           p:::::p                                     y:::::y             
+#                                                          p:::::::p                                   y:::::y              
+#                                                          p:::::::p                                  y:::::y                                                             
+#                                                          ppppppppp                                 yyyyyyy                       
+#                                                                                                                          
+#
+#
 # ====================================================================== 
 # An experimental Modules for propeller analysis 
 # ====================================================================== 
