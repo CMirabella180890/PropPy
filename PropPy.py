@@ -43,7 +43,7 @@ class Propeller(object):
 	Other values stored inside Propeller:
 	lamb    : Propeller advance ratio LAMBDA = V/(Omega*R)
 	V_T     : Omega X xx
-	V_R	    : V_T X sqrt(lamb**2 + xx**2)
+	V_R	: V_T X sqrt(lamb**2 + xx**2)
 	sigma   : Propeller's solidity
 	fie     : Propeller's inflow angle
 	"""
