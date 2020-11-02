@@ -166,7 +166,7 @@ class Propeller(object):
 # ========================================
 	def theta(self, x_theta, y_theta, xx):
 		"""
-
+		Function that interpolates via Lagrange's polynomials the pitch angles along the propeller's radius
 		Parameters
 		----------
 		x_theta --> Points along the propeller's radius in which pitch angle's has been sampled
