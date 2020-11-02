@@ -53,14 +53,14 @@ class Propeller(object):
 		Parameters
 		----------
 		R       --> Propeller radius
-		B	    --> Number of blades
+		B	--> Number of blades
 		V       --> Working velocity
 		Clalfa  --> Lift-curve slope of a blade element
-		Cd 	    --> Drag coefficient of a blade element
-		rpm	    --> Round per minutes
+		Cd 	--> Drag coefficient of a blade element
+		rpm	--> Round per minutes
 		h       --> Height from ground
 		xx      --> Stations along the propeller radius
-		x_c	    --> Points along the propeller radius to interpolate c = c(r)
+		x_c     --> Points along the propeller radius to interpolate c = c(r)
 		c       --> Values of c = c(r) sampled along the propeller radius
 		x_theta --> Points along the propeller radius to interpolate theta = theta(r)
 		y_theta --> Values of theta = theta(r) sampled along the propeller radius
@@ -240,7 +240,7 @@ class Propeller(object):
 		Parameters
 		----------
 		lamb --> Propeller's advance ratio
-		xx	 --> Stations along the propeller's radius
+		xx   --> Stations along the propeller's radius
 
 		Returns
 		-------
@@ -260,17 +260,17 @@ class Rotor(Propeller):
 		Inizialization of the object variable which contains rotor's input data
 		Parameters
 		----------
-		R			--> Rotor's radius
-		B			--> Number of blades
-		V			--> Velocity
-		Clalfa		--> Lift slope of the blade element
-		Cd			--> Drag coefficient for the blade elements
-		rpm			--> Round-per-minutes
-		h			--> Height above the ground
-		xx			--> Stations along the rotor's radius
-		x_c			--> Points along the rotor's radius where chord has been sampled (must be a six-points array)
-		c			--> Chord sampled along the rotor's radius (must be a six-points array)
-		x_theta		--> Points along the rotor's radius where pitch angles has been sampled (must be a six-points array)
+		R           --> Rotor's radius
+		B           --> Number of blades
+		V           --> Velocity
+		Clalfa      --> Lift slope of the blade element
+		Cd          --> Drag coefficient for the blade elements
+		rpm         --> Round-per-minutes
+		h           --> Height above the ground
+		xx          --> Stations along the rotor's radius
+		x_c         --> Points along the rotor's radius where chord has been sampled (must be a six-points array)
+		c           --> Chord sampled along the rotor's radius (must be a six-points array)
+		x_theta	    --> Points along the rotor's radius where pitch angles has been sampled (must be a six-points array)
 		y_theta     --> Pitch angles sampled along the rotor's radius (must be a six-points array)
 		mu          --> Climb velocity V / (Omega X R)
 		theta_hub   --> Pitch angle measured at the hub
@@ -357,7 +357,7 @@ class Rotor(Propeller):
 		Parameters
 		----------
 		sigma --> Rotor's solidity
-		Cl	  --> Blade element's lift coefficient
+		Cl    --> Blade element's lift coefficient
 		xx    --> Stations along the rotor's radius
 
 		Returns
