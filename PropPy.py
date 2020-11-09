@@ -68,7 +68,7 @@ class Propeller(object):
 	
 	Other values stored inside Propeller:
 	lamb    : Propeller advance ratio LAMBDA = V/(Omega*R)
-	V_T     : Omega X xx
+	V_T     : Omega X R
 	V_R	: V_T X sqrt(lamb**2 + xx**2)
 	sigma   : Propeller's solidity
 	fie     : Propeller's inflow angle
@@ -107,6 +107,7 @@ class Propeller(object):
 		self.V_R	    = self.V_R(self.V_T, self.lamb, self.xx)
 		self.sigma          = self.sigma(self.B, self.chord, self.R)
 		self.fie            = self.fie(self.lamb, self.xx)
+		self.alpha          = self.theta - self.fie 
 # ========================================
 # Define a Propeller
 # ========================================
@@ -220,21 +221,21 @@ class Propeller(object):
 		Parameters
 		----------
 		Omega --> Propeller's angular velocity
-		xx    --> Stations along the propeller radius
+		R     --> Propeller's radius
 
 		Returns
 		-------
 		See McCormick: Aerodynamics of VSTOL Flight (1967) - Chapter 4, pag 80
-		Omega X xx
+		V_tip = Omega X R
 		"""
-		return self.Omega*self.xx
+		return self.Omega*self.R
 # ========================================
 	def V_R(self, V_T, lamb, xx):
 		"""
 		Function that calculates V_R
 		Parameters
 		----------
-		V_T  --> Omega X xx
+		V_T  --> Omega X R
 		lamb --> Propeller's advance ratio
 		xx   --> Stations along the propeller's radius
 
@@ -490,7 +491,7 @@ class Method_A(object):
 	Class for propeller analysis with momentum theory
 	INPUT 
 	lamb     : Propeller advance ratio
-	V_T      : Omega * xx
+	V_T      : Omega * R
 	V_R      : V_T * sqrt(lamb**2 + xx**2)
 	Clalfa   : Lift slope coefficient 
 	fie      : Inflow-angles distribution (must be in radians)
@@ -502,7 +503,7 @@ class Method_A(object):
 		Parameters
 		----------
 		lamb     : Propeller advance ratio
-		V_T      : Omega * xx
+		V_T      : Omega * R
 		V_R      : V_T * sqrt(lamb**2 + xx**2)
 		sigma    : Propeller's solidity
 		Clalfa   : Lift slope coefficient
@@ -528,7 +529,7 @@ class Method_A(object):
 		Parameters
 		----------
 		lamb   --> Propeller's advance ratio
-		V_T    --> Omega * xx
+		V_T    --> Omega * R
 		V_R    --> V_T * sqrt(lamb**2 + xx**2)
 		sigma  --> Propeller's solidity
 		Clalfa --> Lift slope coefficient
@@ -586,7 +587,7 @@ class Method_B(object):
 	Class for propeller analysis with small-disturbance-vortex-theory
 	INPUT 
 	lamb     : Propeller advance ratio
-	V_T      : Omega * xx
+	V_T      : Omega * R
 	V_R      : V_T * sqrt(lamb**2 + xx**2)
 	Clalfa   : Lift slope coefficient 
 	fie      : Inflow-angles distribution (must be in radians)
@@ -599,7 +600,7 @@ class Method_B(object):
 		----------
 		lamb   --> Propeller's advance ratio
 		B      --> Propeller's number of blades
-		V_T    --> Omega * xx
+		V_T    --> Omega * R
 		V_R    --> V_T * sqrt(lamb**2 + xx**2)
 		sigma  --> Propeller's solidity
 		Clalfa --> Lift slope coefficient
@@ -639,7 +640,7 @@ class Method_B(object):
 		Parameters
 		----------
 		lamb      --> Propeller's advance ratio
-		V_T       --> Omega * xx
+		V_T       --> Omega * R
 		V_R       --> V_T * sqrt(lamb**2 + xx**2)
 		sigma     --> Propeller's solidity
 		Clalfa    --> Lift slope coefficient
@@ -694,80 +695,57 @@ class Method_C(object):
 	"""
 	Class for propeller analysis with small-disturbance-vortex-theory
 	INPUT 
+	alfa     : Angle of attack
 	lamb     : Propeller advance ratio
-	V_T      : Omega * xx
+	V_T      : Omega * R
 	V_R      : V_T * sqrt(lamb**2 + xx**2)
 	Clalfa   : Lift slope coefficient 
 	fie      : Inflow-angles distribution (must be in radians)
 	theta    : Pitch-angles distribution (must be in radians)
 	"""
-	def __init__(self, lamb, B, V_T, V_R, sigma, Clalfa, xx, fie, theta, Omega, R, V):
-		self.lamb, self.B, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta, self.Omega, self.R, self.V = lamb, B, 			V_T, V_R, sigma, Clalfa, xx, fie, theta, Omega, R, V
+	def __init__(self, alpha, lamb, B, V_T, V_R, sigma, Clalfa, xx, fie, theta, Omega, R, V, Cd, Cl):
+		self.alpha, self.lamb, self.B, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta, self.Omega, self.R, self.V, 			self.Cd, self.Cl   = alpha, lamb, B, V_T, V_R, sigma, Clalfa, xx, fie, theta, Omega, R, V, Cd, Cl
 		self.F_correct     = self.F_correct(self.B, self.xx, self.fie)
-		self.induction     = self.induction(self.lamb, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta, 			self.F_correct, self.Omega, self.R, self.V)
+		self.lamb1         = self.lamb1(self.Cl, self.Cd, self.fie)
+		self.lamb2         = self.lamb2(self.Cl, self.Cd, self.fie)
+		self.a             = self.a(self.sigma, self.lamb1, self.fie)
+		self.a_prime       = self.a_prime(self.sigma, self.lamb2, self.fie)
+		self.dCT           = self.F_correct*self.dCTdr(self.sigma, self.lamb1, self.xx, self.a_prime, self.fie)
+		self.dCQ           = self.F_correct*self.dCQdr(self.sigma, self.lamb2, self.xx, self.a_prime, self.fie)
+		self.dCP           = self.dCQ*2*math.pi
+		self.J             = self.advance_ratio(self.xx, self.a_prime, self.a, self.fie)
 # ========================================
 # Induced angle of attack
 # ========================================
 	def F_correct(self, B, xx, fie):
 		return (2/math.pi)*np.arccos(np.exp(-(self.B*(1-self.xx))/(2*np.sin(self.fie))))
 # ========================================
-	def induction(self, lamb, V_T, V_R, sigma, Clalfa, xx, fie, theta, F_correct, Omega, R, V):
-		#x = np.array(3)
-		# ========================================
-		# First approximation
-		# ========================================
-		temp1 = (self.lamb)/(self.xx) + (self.sigma*self.Clalfa)/(8*(self.F_correct)*(self.xx)*np.cos(self.fie))
-		temp2 = temp1**2 + (self.sigma*self.Clalfa*(self.theta - self.fie))/(2*(self.F_correct)*(self.xx)*np.cos(self.fie)) 
-		# ========================================
-		alfai1 = -0.5*(-temp1 + np.sqrt(temp2))
-		wa1    = self.V_R*alfai1*np.cos(self.fie + alfai1)
-		wt1    = self.V_R*alfai1*np.sin(self.fie + alfai1)
-		# ========================================
-		x      = self.xx 
-		lamb   = self.lamb
-		Omega  = self.Omega
-		vt     = self.V_T
-		vr     = self.V_R
-		r      = self.R
-		v      = self.V	
-		theta  = self.theta	
-		f      = self.F_correct
-		sigma  = self.sigma
-		Clalfa = self.Clalfa
-		y      = np.zeros(len(alfai1))
-		dy     = np.zeros(len(alfai1))
-		term1  = np.zeros(len(alfai1))
-		term2  = np.zeros(len(alfai1)) 
-		aa     = np.zeros(len(alfai1))
-		bb     = np.zeros(len(alfai1))
-		cc     = np.zeros(len(alfai1))
-		da     = np.zeros(len(alfai1))
-		db     = np.zeros(len(alfai1))
-		dc     = np.zeros(len(alfai1))
-		err    = 1E-9
-		wt     = np.zeros(len(alfai1))
-		wa     = np.zeros(len(alfai1))
-		alfai  = np.zeros(len(alfai1))
-		for i in range(len(alfai1)):
-			wt1[i] = wt1[i] - 0.1*wt1[i]
-			term1[i] = np.sqrt(v**2 + 4*wt1[i]*(Omega*x[i]*R - wt1[i])) - v
-			term2[i] = lamb + np.sqrt(lamb**2 + 4*(wt1[i]/vt[i])*(x[i] - (wt1[i]/vt[i])))
-			aa[i]    = theta[i] - np.arctan(2*wt1[i]/term1[i])
-			bb[i]    = np.sqrt(0.25*(term2[i])**2 + (x[i] - (wt1[i]/vt[i]))**2)
-			cc[i]    = 8*x[i]*f[i]*(wt1[i]/vt[i])
-			da[i]    = ((-2)/((term1[i]**2)+(4*wt1[i]*wt1[i])))*(term1[i]-(wt1[i]*(((2*Omega*r*x[i])-(4*wt1[i]))/(term1[i]+v))))
-			db[i]    = (((term2[i]*((x[i]/vt[i])-(2*wt1[i]/(vt[i]**2))))/(2*(term2[i]-lamb)))+(wt1[i]/(vt[i]**2))-(x[i]/vt[i]))/bb[i]
-			dc[i]    = 8*x[i]*f[i]/vt[i]
-			y[i]     = sigma[i]*Clalfa*aa[i]*bb[i] - cc[i]
-			dy[i]    = sigma[i]*Clalfa*(aa[i]*db[i] + bb[i]*da[i]) - dc[i]
-			for j in range(200):
-				if abs(y[j]/dy[i]) < err:
-					wt1[i] = wt1[i] - (y[i]/dy[i])
-					wt[i]  = wt1[i]
-			else:
-				continue
-				 
-		return wt1, wt
+	def lamb1(self, Cl, Cd, fie):
+		return self.Cl*np.cos(self.fie) - self.Cd*np.sin(self.fie)
+	def lamb2(self, Cl, Cd, fie):
+		return self.Cl*np.sin(self.fie) - self.Cd*np.cos(self.fie)
+# ========================================
+	def a(self, sigma, lamb1, fie):
+		return  ((self.sigma*self.lamb1)/(2*(1-np.cos(2*self.fie))))/(1 - 
+			(self.sigma*self.lamb1)/(2*(1-np.cos(2*self.fie))))
+	def a_prime(self, sigma, lamb2, fie):
+		return ((self.sigma*self.lamb2)/(2*np.sin(2*self.fie)))/(1 + 
+			(self.sigma*self.lamb2)/(2*np.sin(2*self.fie)))
+	def V_e(self, V, a, fie):
+		"""
+		Returns V equivalent squared!
+		"""
+		return ((self.V**2)*(1+self.a)**2)/((np.sin(self.fie))**2)
+# ========================================
+	def dCTdr(self, sigma, lamb1, xx, a_prime, fie):
+		return ((math.pi**3)/4)*self.sigma*self.lamb1*(self.xx**3)*((1 - self.a_prime)**2/((np.cos(self.fie))**2))
+	def dCQdr(self, sigma, lamb2, xx, a_prime, fie): 
+		return ((1-self.a_prime)**2/(np.cos(self.fie))**2)*((math.pi**3)/8)*self.sigma*self.lamb2*(self.xx**4)
+# ========================================
+	def advance_ratio(self, xx, a_prime, a, fie):
+		return ((1-self.a_prime)/(1+self.a))*math.pi*self.xx*np.tan(self.fie)
+	
+		
 			
 		
 			
