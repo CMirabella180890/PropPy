@@ -103,7 +103,7 @@ class Propeller(object):
 		self.chord 	    = self.chord(self.x_c,self.c,self.xx)
 		self.theta 	    = self.theta(self.x_theta,self.y_theta,self.xx)
 		self.lamb           = self.advance_ratio(self.V, self.Omega, self.R)
-		self.V_T	    = self.V_T(self.Omega, self.xx)
+		self.V_T	    = self.V_T(self.Omega, self.R)
 		self.V_R	    = self.V_R(self.V_T, self.lamb, self.xx)
 		self.sigma          = self.sigma(self.B, self.chord, self.R)
 		self.fie            = self.fie(self.lamb, self.xx)
@@ -215,7 +215,7 @@ class Propeller(object):
 			sum = sum + product
 		return sum
 # ========================================
-	def V_T(self, Omega, xx):
+	def V_T(self, Omega, R):
 		"""
 		Function that calculates V_T
 		Parameters
@@ -542,7 +542,7 @@ class Method_A(object):
 		alfai  --> Induced angle of attack distribution
 		"""
 		temp1 = (self.lamb)/(self.xx) + (self.sigma*self.Clalfa*self.V_R)/(8*self.V_T*self.xx**2)
-		temp2 = temp1**2 + (self.sigma*self.Clalfa*self.V_R*(self.theta-self.fie))/(self.V_T*2*self.xx**2)
+		temp2 = temp1**2 + (self.sigma*self.Clalfa*self.V_R*(self.theta - self.fie))/(self.V_T*2*self.xx**2)
 		return -0.5*(-temp1 + np.sqrt(temp2))
 # ========================================
 	def wa(self, V_R, alfai, fie):
@@ -711,9 +711,10 @@ class Method_C(object):
 		self.a             = self.a(self.sigma, self.lamb1, self.fie)
 		self.a_prime       = self.a_prime(self.sigma, self.lamb2, self.fie)
 		self.dCT           = self.F_correct*self.dCTdr(self.sigma, self.lamb1, self.xx, self.a_prime, self.fie)
-		self.dCQ           = self.F_correct*self.dCQdr(self.sigma, self.lamb2, self.xx, self.a_prime, self.fie)
+		self.dCQ           = self.dCQdr(self.sigma, self.lamb2, self.xx, self.a_prime, self.fie)
 		self.dCP           = self.dCQ*2*math.pi
 		self.J             = self.advance_ratio(self.xx, self.a_prime, self.a, self.fie)
+		self.data          = self.my_prop_table(self.xx, self.alpha, self.Cl, self.Cd, self.fie, self.lamb1, self.lamb2, self.a, self.a_prime, 			self.dCT, self.dCQ, self.J)
 # ========================================
 # Induced angle of attack
 # ========================================
@@ -744,6 +745,41 @@ class Method_C(object):
 # ========================================
 	def advance_ratio(self, xx, a_prime, a, fie):
 		return ((1-self.a_prime)/(1+self.a))*math.pi*self.xx*np.tan(self.fie)
+# ========================================	
+	def my_prop_table(self, xx, alpha, Cl, Cd, fie, lamb1, lamb2, a, a_prime, dCT, dCQ, J):
+		"""
+		Function that generates a comma separated file with outputs from the calculations above. Also, the function
+		print to console all the values in columns format.
+		Parameters
+		----------
+
+		Returns
+		-------
+		Comma separated values (.csv) file
+		"""
+		xx      = self.xx
+		alpha   = self.alpha
+		Cl      = self.Cl
+		Cd      = self.Cd
+		fie     = self.fie
+		lamb1   = self.lamb1
+		lamb2   = self.lamb2
+		a       = self.a
+		a_prime = self.a_prime
+		dCT     = self.dCT
+		dCQ     = self.dCQ
+		J       = self.J
+		my_dict = {'xx': xx, 'alpha': alpha, 'Cl': Cl, 'Cd': Cd, 'fie': fie, 'lamb1': lamb1, 'lamb2': lamb2, 'a': a, 'a_prime': a_prime,
+		'dCT/dr_bar': dCT, 'dCQ/dr_bar': dCQ, 'J': J}
+		df1     = pd.DataFrame(my_dict)
+		#df2     = pd.DataFrame({'Tc': Tc, 'Qc': Qc}, index=np.arange(1))
+		#df      = pd.concat([df1, df2])
+		#df1.to_csv("esempio")
+		return df1
+			
+# ++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++
+
 	
 		
 			

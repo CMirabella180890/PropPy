@@ -27,7 +27,7 @@ Cd        = 0.01
 Cl        = 0.6
 
 x_Point_theta = [0.150, 0.289, 0.489, 0.753, 0.859, 0.981] 
-y_Point_theta = [17.2 , 11.3 , 3.00 ,-1.08 ,-1.820,-2.950]
+y_Point_theta = [17.2 , 10.35, 4.00 ,-1.08 ,-1.820,-2.950]
 # ========================================
 my_prop = Propeller(R, B, V, Clalfa, Cd, rpm, h, xx, x_Point_c, y_Point_c, x_Point_theta, y_Point_theta)
 type(x_Point_c)
@@ -75,6 +75,17 @@ pp.savefig(fig4)
 m1 = Method_A(my_prop.lamb, my_prop.V_T, my_prop.V_R, my_prop.sigma, my_prop.Clalfa, my_prop.xx, np.deg2rad(my_prop.fie), np.deg2rad(my_prop.theta))
 m2 = Method_B(my_prop.lamb, my_prop.B, my_prop.V_T, my_prop.V_R, my_prop.sigma, my_prop.Clalfa, my_prop.xx, np.deg2rad(my_prop.fie), np.deg2rad(my_prop.theta))
 # ========================================
+fff1 = plt.figure()
+plt.plot(xx,m1.wa)
+plt.xlabel(r'$r$')                    # x-label to the axes.
+plt.ylabel(r'$w_a$') # y-label to the axes.
+plt.title(r'Axial induction - Method A')   # Title to the axes.
+plt.grid(True,linestyle='-.')
+plt.show()
+#pp.savefig(fig6)
+#pp.close()
+# ========================================
+# ========================================
 print("Correzione di Prandtl F:\n", m2.F_correct)
 print("alfai:\n", np.rad2deg(m2.alfai))
 print("wa:\n", m2.wa)
@@ -105,13 +116,25 @@ print('Prova induzione a_prime:\n', m3.a_prime)
 print('Prova coefficienti di spinta dCT/dr:\n', m3.dCT)
 print('Prova coefficienti di spinta dCP/dr:\n', m3.dCP)
 print('Rapporto di funzionamento J:\n', m3.J)
+print('Complessivo dati:\n', m3.data.to_string())
 # ========================================
 fig7 = plt.figure()
+plt.plot(xx,my_prop.alpha)
+plt.xlabel(r'$r$')                    # x-label to the axes.
+plt.ylabel(r'$\alpha$') # y-label to the axes.
+plt.title(r'Angle of attack')   # Title to the axes.
+plt.grid(True,linestyle='-.')
+plt.show()
+#pp.savefig(fig7)
+#pp.close()
+# ========================================
+# ========================================
+fig8 = plt.figure()
 plt.plot(xx,m3.dCT)
 plt.plot(xx,m3.dCP)
-plt.xlabel('$r$')                    # x-label to the axes.
-plt.ylabel('$dC_T/dr$') # y-label to the axes.
-plt.title(r'Thrust coefficient - Method C')   # Title to the axes.
+plt.xlabel(r'$r$')                    # x-label to the axes.
+plt.ylabel(r'$\frac{dC_T}{dr}, \,\, \frac{dC_P}{dr}$') # y-label to the axes.
+plt.title(r'Thrust and Power coefficient - Method C')   # Title to the axes.
 plt.grid(True,linestyle='-.')
 plt.show()
 #pp.savefig(fig7)
