@@ -548,7 +548,7 @@ class Method_A(object):
 		self.alfai = self.alfai(self.lamb, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta)
 		self.wa    = self.wa(self.V_R, self.alfai, self.fie)
 		self.wt    = self.wt(self.V_R, self.alfai, self.fie)
-		self.dCT   = self.dCTdr(np.deg2rad(self.alfai), self.R, self.theta, self.fie, self.Clalfa, self.B, self.V_R, self.V_T)*self.F_correct
+		self.dCT   = self.dCTdr(self.alfai, self.R, self.theta, self.fie, self.Clalfa, self.B, self.V_R, self.V_T)*self.F_correct
 		self.CT    = integrate.simps(self.dCT, self.xx)
 		self.data  = self.methodA_table(self.alfai, self.wa, self.wt, self.dCT)
 # ========================================
@@ -642,7 +642,7 @@ class Method_A(object):
 		-------
 		Comma separated values (.csv) file
 		"""
-		alfai = self.alfai
+		alfai = np.rad2deg(self.alfai)
 		wa    = self.wa
 		wt    = self.wt
 		dCT   = self.dCT
