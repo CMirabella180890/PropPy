@@ -108,6 +108,7 @@ class Propeller(object):
 		self.sigma          = self.sigma(self.B, self.chord, self.R)
 		self.fie            = self.fie(self.lamb, self.xx)
 		self.alpha          = self.theta - self.fie 
+		self.data	    = self.my_propeller_table(self.xx, self.chord, self.theta, self.fie, self.alpha, self.sigma)
 # ========================================
 # Define a Propeller
 # ========================================
@@ -228,7 +229,7 @@ class Propeller(object):
 		See McCormick: Aerodynamics of VSTOL Flight (1967) - Chapter 4, pag 80
 		V_tip = Omega X R
 		"""
-		return self.Omega*self.R
+		return self.Omega*self.xx
 # ========================================
 	def V_R(self, V_T, lamb, xx):
 		"""
@@ -274,6 +275,32 @@ class Propeller(object):
 		fie  --> Propeller's inflow angles
 		"""
 		return np.rad2deg(np.arctan(lamb/xx))
+
+# ========================================	
+	def my_propeller_table(self, xx, chord, theta, fie, alpha, sigma):
+		"""
+		Function that generates a comma separated file with outputs from the calculations above. Also, the function
+		print to console all the values in columns format.
+		Parameters
+		----------
+
+		Returns
+		-------
+		Comma separated values (.csv) file
+		"""
+		xx       = self.xx
+		chord    = self.chord
+		theta    = self.theta
+		fie      = self.fie
+		alpha    = self.alpha
+		solidity = self.sigma
+		my_dict = {'xx': xx, 'chord': chord, 'theta': theta, 'fie': fie, 'alpha': alpha, 'solidity': solidity}
+		df1     = pd.DataFrame(my_dict)
+		#df2     = pd.DataFrame({'Tc': Tc, 'Qc': Qc}, index=np.arange(1))
+		#df      = pd.concat([df1, df2])
+		#df1.to_csv("esempio")
+		return df1
+			
 # ========================================
 # Rotor class inheritance from Propeller
 # ========================================	
@@ -497,7 +524,7 @@ class Method_A(object):
 	fie      : Inflow-angles distribution (must be in radians)
 	theta    : Pitch-angles distribution (must be in radians)
 	"""
-	def __init__(self, lamb, V_T, V_R, sigma, Clalfa, xx, fie, theta):
+	def __init__(self, lamb, V_T, V_R, sigma, Clalfa, xx, fie, theta, B, R):
 		"""
 		Inizialization of the object variable for Method A
 		Parameters
@@ -516,10 +543,14 @@ class Method_A(object):
 		wa       : Axial induction
 		wt       : Rotational induction
 		"""
-		self.lamb, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta = lamb, V_T, V_R, sigma, Clalfa, xx, fie, theta
+		self.lamb, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta, self.B, self.R = lamb, V_T, V_R, sigma, 			Clalfa, xx, fie, theta, B, R
+		self.F_correct     = self.F_correct(self.B, self.xx, self.fie)
 		self.alfai = self.alfai(self.lamb, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta)
 		self.wa    = self.wa(self.V_R, self.alfai, self.fie)
 		self.wt    = self.wt(self.V_R, self.alfai, self.fie)
+		self.dCT   = self.dCTdr(np.deg2rad(self.alfai), self.R, self.theta, self.fie, self.Clalfa, self.B, self.V_R, self.V_T)*self.F_correct
+		self.CT    = integrate.simps(self.dCT, self.xx)
+		self.data  = self.methodA_table(self.alfai, self.wa, self.wt, self.dCT)
 # ========================================
 # Induced angle of attack
 # ========================================
@@ -574,8 +605,50 @@ class Method_A(object):
 		wt    --> Rotational induction
 		"""
 		return self.V_R*self.alfai*np.sin(self.fie + self.alfai)
-# ========================================	
+# ========================================
+# ========================================
+	def F_correct(self, B, xx, fie):
+		"""
+		Prandtl's tip-loss factor (see for instance Aerodynamics of VSTO Flight, Chapter 4, pag 83, formula 4-29)
+		Parameters
+		----------
+		B   --> Propeller's number of blades
+		xx  --> Stations along the propeller's radius
+		fie --> Inflow-angles distribution
 
+		Returns
+		-------
+		F   --> Tip-loss factor
+		"""
+		return (2/math.pi)*np.arccos(np.exp(-(self.B*(1-self.xx))/(2*np.sin(self.fie))))
+# ========================================	
+# ========================================	
+	def dCTdr(self, R, alfai, theta, fie, Clalfa, B, V_R, V_T):
+		return -0.5*(1/(math.pi*self.R**2))*self.B*self.Clalfa*np.cos(self.fie)*(self.theta - self.fie - self.alfai)*((self.V_R**2)/(self.V_T**2))
+
+# ========================================	
+	def methodA_table(self, alfai, wa, wt, dCT):
+		"""
+		Function that generates a comma separated file with outputs from the calculations above. Also, the function
+		print to console all the values in columns format.
+		Parameters
+		----------
+		dCT   --> Thrust coefficients
+		alfai --> Induced angle of attack
+		wt    --> Propeller's rotational induction
+		wa    --> Propeller's axial induction
+
+		Returns
+		-------
+		Comma separated values (.csv) file
+		"""
+		alfai = self.alfai
+		wa    = self.wa
+		wt    = self.wt
+		dCT   = self.dCT
+		my_dict = {'alfai': alfai, 'wa': wa, 'wt': wt, 'dCT': dCT}
+		df1     = pd.DataFrame(my_dict)
+		return df1
 # ++++++++++++++++++++++++++++++++++++++++
 # ++++++++++++++++++++++++++++++++++++++++
 
@@ -615,7 +688,9 @@ class Method_B(object):
 		self.F_correct     = self.F_correct(self.B, self.xx, self.fie)
 		self.alfai 	   = self.alfai(self.lamb, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta, self.F_correct)
 		self.wa    	   = self.wa(self.V_R, self.alfai, self.fie)
-		self.wt    	   = self.wt(self.V_R, self.alfai, self.fie)
+		self.wt    	   = self.wt(self.V_R, np.deg2rad(self.alfai), self.fie)
+		self.dCT           = self.dCTdr(np.deg2rad(self.alfai), np.deg2rad(self.theta), np.deg2rad(self.fie), self.Clalfa, self.B, self.V_R, 			self.V_T)*self.F_correct
+		self.CT            = integrate.simps(self.dCT, self.xx)
 # ========================================
 # Induced angle of attack
 # ========================================
@@ -687,7 +762,9 @@ class Method_B(object):
 		"""
 		return self.V_R*self.alfai*np.sin(self.fie + self.alfai)
 # ========================================	
-
+	def dCTdr(self, alfai, theta, fie, Clalfa, B, V_R, V_T):
+		return 0.5*self.B*self.Clalfa*np.cos(self.fie)*(self.theta - self.fie - self.alfai)*((self.V_R**2)/(self.V_T**2))
+# ========================================	
 # ========================================
 # Full Vortex Theory
 # ========================================
@@ -703,28 +780,32 @@ class Method_C(object):
 	fie      : Inflow-angles distribution (must be in radians)
 	theta    : Pitch-angles distribution (must be in radians)
 	"""
-	def __init__(self, alpha, lamb, B, V_T, V_R, sigma, Clalfa, xx, fie, theta, Omega, R, V, Cd, Cl):
-		self.alpha, self.lamb, self.B, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta, self.Omega, self.R, self.V, 			self.Cd, self.Cl   = alpha, lamb, B, V_T, V_R, sigma, Clalfa, xx, fie, theta, Omega, R, V, Cd, Cl
+	def __init__(self, alpha, lamb, B, V_T, V_R, sigma, Clalfa, xx, fie, theta, Omega, R, V, Cd):
+		self.alpha, self.lamb, self.B, self.V_T, self.V_R, self.sigma, self.Clalfa, self.xx, self.fie, self.theta, self.Omega, self.R, self.V, 			self.Cd   = alpha, lamb, B, V_T, V_R, sigma, Clalfa, xx, fie, theta, Omega, R, V, Cd
 		self.F_correct     = self.F_correct(self.B, self.xx, self.fie)
+		self.Cl            = self.Cl(self.Clalfa, self.alpha)
 		self.lamb1         = self.lamb1(self.Cl, self.Cd, self.fie)
 		self.lamb2         = self.lamb2(self.Cl, self.Cd, self.fie)
 		self.a             = self.a(self.sigma, self.lamb1, self.fie)
 		self.a_prime       = self.a_prime(self.sigma, self.lamb2, self.fie)
-		self.dCT           = self.F_correct*self.dCTdr(self.sigma, self.lamb1, self.xx, self.a_prime, self.fie)
-		self.dCQ           = self.dCQdr(self.sigma, self.lamb2, self.xx, self.a_prime, self.fie)
+		self.fie_new       = self.fie_new(self.fie, self.a, self.a_prime)
+		self.alpha_new     = self.alpha_new(self.theta, self.fie_new)
+		self.Cl_new        = self.Cl(self.Clalfa, self.alpha_new)
+		self.lamb1_new     = self.lamb1(self.Cl_new, self.Cd, self.fie_new)
+		self.lamb2_new     = self.lamb2(self.Cl_new, self.Cd, self.fie_new)
+		self.dCT           = self.F_correct*self.dCTdr(self.sigma, self.lamb1_new, self.xx, self.a_prime, self.fie_new)
+		self.dCQ           = self.dCQdr(self.sigma, self.lamb2_new, self.xx, self.a_prime, self.fie_new)
 		self.dCP           = self.dCQ*2*math.pi
-		self.J             = self.advance_ratio(self.xx, self.a_prime, self.a, self.fie)
-		self.data          = self.my_prop_table(self.xx, self.alpha, self.Cl, self.Cd, self.fie, self.lamb1, self.lamb2, self.a, self.a_prime, 			self.dCT, self.dCQ, self.J)
+		self.J             = self.advance_ratio(self.xx, self.a_prime, self.a, self.fie_new)
+		self.data          = self.my_prop_table(self.xx, self.alpha_new, self.Cl_new, self.Cd, self.fie_new, self.lamb1_new, self.lamb2_new, 			self.a, self.a_prime, self.dCT, self.dCQ, self.J)
+		self.CT            = integrate.simps(self.dCT, self.xx)
+		self.CQ            = integrate.simps(self.dCQ, self.xx)
+		self.CP            = integrate.simps(self.dCP, self.xx)
 # ========================================
 # Induced angle of attack
 # ========================================
 	def F_correct(self, B, xx, fie):
 		return (2/math.pi)*np.arccos(np.exp(-(self.B*(1-self.xx))/(2*np.sin(self.fie))))
-# ========================================
-	def lamb1(self, Cl, Cd, fie):
-		return self.Cl*np.cos(self.fie) - self.Cd*np.sin(self.fie)
-	def lamb2(self, Cl, Cd, fie):
-		return self.Cl*np.sin(self.fie) - self.Cd*np.cos(self.fie)
 # ========================================
 	def a(self, sigma, lamb1, fie):
 		return  ((self.sigma*self.lamb1)/(2*(1-np.cos(2*self.fie))))/(1 - 
@@ -732,21 +813,35 @@ class Method_C(object):
 	def a_prime(self, sigma, lamb2, fie):
 		return ((self.sigma*self.lamb2)/(2*np.sin(2*self.fie)))/(1 + 
 			(self.sigma*self.lamb2)/(2*np.sin(2*self.fie)))
-	def V_e(self, V, a, fie):
+# ========================================
+	def fie_new(self, fie, a, a_prime):
+		return self.fie*((1+self.a)/(1-self.a_prime))
+	def alpha_new(self, theta, fie_new):
+		return self.theta - self.fie_new
+# ========================================
+	def Cl(self, Clalfa, alpha_new):
+		return self.Clalfa*self.alpha_new
+# ========================================
+	def lamb1(self, Cl, Cd, fie_new):
+		return self.Cl*np.cos(self.fie_new) - self.Cd*np.sin(self.fie_new)
+	def lamb2(self, Cl, Cd, fie_new):
+		return self.Cl*np.sin(self.fie_new) - self.Cd*np.cos(self.fie_new)
+# ========================================
+	def V_e(self, V, a, fie_new):
 		"""
 		Returns V equivalent squared!
 		"""
-		return ((self.V**2)*(1+self.a)**2)/((np.sin(self.fie))**2)
+		return ((self.V**2)*(1+self.a)**2)/((np.sin(self.fie_new))**2)
 # ========================================
-	def dCTdr(self, sigma, lamb1, xx, a_prime, fie):
-		return ((math.pi**3)/4)*self.sigma*self.lamb1*(self.xx**3)*((1 - self.a_prime)**2/((np.cos(self.fie))**2))
+	def dCTdr(self, sigma, lamb1, xx, a_prime, fie_new):
+		return ((math.pi**3)/4)*self.sigma*self.lamb1*(self.xx**3)*((1 - self.a_prime)**2/((np.cos(self.fie_new))**2))
 	def dCQdr(self, sigma, lamb2, xx, a_prime, fie): 
-		return ((1-self.a_prime)**2/(np.cos(self.fie))**2)*((math.pi**3)/8)*self.sigma*self.lamb2*(self.xx**4)
+		return ((1-self.a_prime)**2/(np.cos(self.fie_new))**2)*((math.pi**3)/8)*self.sigma*self.lamb2*(self.xx**4)
 # ========================================
-	def advance_ratio(self, xx, a_prime, a, fie):
-		return ((1-self.a_prime)/(1+self.a))*math.pi*self.xx*np.tan(self.fie)
+	def advance_ratio(self, xx, a_prime, a, fie_new):
+		return ((1-self.a_prime)/(1+self.a))*math.pi*self.xx*np.tan(self.fie_new)
 # ========================================	
-	def my_prop_table(self, xx, alpha, Cl, Cd, fie, lamb1, lamb2, a, a_prime, dCT, dCQ, J):
+	def my_prop_table(self, xx, alpha_new, Cl, Cd, fie_new, lamb1, lamb2, a, a_prime, dCT, dCQ, J):
 		"""
 		Function that generates a comma separated file with outputs from the calculations above. Also, the function
 		print to console all the values in columns format.
@@ -758,10 +853,10 @@ class Method_C(object):
 		Comma separated values (.csv) file
 		"""
 		xx      = self.xx
-		alpha   = self.alpha
+		alpha   = self.alpha_new
 		Cl      = self.Cl
 		Cd      = self.Cd
-		fie     = self.fie
+		fie     = self.fie_new
 		lamb1   = self.lamb1
 		lamb2   = self.lamb2
 		a       = self.a
